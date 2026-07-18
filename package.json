@@ -9,6 +9,7 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@imagekit/next": "^2.1.5",
     "bcryptjs": "^3.0.3",
     "dotenv": "^17.4.2",
     "imagekit": "^6.0.0",
