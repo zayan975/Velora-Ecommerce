@@ -12,17 +12,19 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       },
 
       async authorize(credentials) {
-        const user = await loginService(
-          credentials.email,
-          credentials.password,
-        );
+  console.log("RAW CREDENTIALS RECEIVED:", credentials); // <-- ye add karo
 
-        if (!user) {
-          return null;
-        }
+  const user = await loginService(
+    credentials.email,
+    credentials.password,
+  );
 
-        return user;
-      },
+  if (!user) {
+    return null;
+  }
+
+  return user;
+},
     }),
   ],
 

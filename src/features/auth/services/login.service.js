@@ -6,10 +6,18 @@ export const loginService = async (email, password) => {
   await connectDB();
 
   const user = await findUserByEmail(email);
+  console.log("USER FOUND:", user); // <-- ye check karo
 
-  if (!user) return null;
+  if (!user) {
+    console.log("No user found with this email");
+    return null;
+  }
+
+  console.log("Password from form:", password);
+  console.log("Hashed password from DB:", user.password);
 
   const isMatch = await bcrypt.compare(password, user.password);
+  console.log("Password match:", isMatch); // <-- true/false
 
   if (!isMatch) return null;
 
