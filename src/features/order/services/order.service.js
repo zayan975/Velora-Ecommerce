@@ -1,14 +1,28 @@
 // src/services/order.service.js
 import connectDB from "@/lib/db";
 import { getPopulatedCart } from "@/features/checkout/repositories/checkout.repository";
-import { createOrderRecord, decrementStock, clearUserCart } from "@/features/order/repositories/order.repository";
+import {
+  createOrderRecord,
+  decrementStock,
+  clearUserCart,
+} from "@/features/order/repositories/order.repository";
+import User from "@/models/User";
+import { sendOrderConfirmationEmail } from "@/features/email/services/email.service";
 
 const SHIPPING_FLAT_RATE = 200;
 
-export const createOrderService = async (userId, { shippingAddress, paymentMethod = "cod" }) => {
+export const createOrderService = async (
+  userId,
+  { shippingAddress, paymentMethod = "cod" },
+) => {
   await connectDB();
 
-  if (!shippingAddress?.fullName || !shippingAddress?.phone || !shippingAddress?.addressLine || !shippingAddress?.city) {
+  if (
+    !shippingAddress?.fullName ||
+    !shippingAddress?.phone ||
+    !shippingAddress?.addressLine ||
+    !shippingAddress?.city
+  ) {
     throw new Error("Shipping address is incomplete");
   }
 
@@ -26,7 +40,10 @@ export const createOrderService = async (userId, { shippingAddress, paymentMetho
       throw new Error("One of the products in your cart no longer exists");
     }
 
-    const updatedProduct = await decrementStock(item.product._id, item.quantity);
+    const updatedProduct = await decrementStock(
+      item.product._id,
+      item.quantity,
+    );
 
     if (!updatedProduct) {
       // Rollback: jo items already decrement ho chuke hain unko wapas add karo
@@ -36,11 +53,17 @@ export const createOrderService = async (userId, { shippingAddress, paymentMetho
       throw new Error(`${item.product.name} is out of stock`);
     }
 
-    decrementedItems.push({ product: item.product._id, quantity: item.quantity });
+    decrementedItems.push({
+      product: item.product._id,
+      quantity: item.quantity,
+    });
   }
 
   // Step 2: Pricing calculate (checkout jaisa hi)
-  const subtotal = cart.items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const subtotal = cart.items.reduce(
+    (sum, item) => sum + item.price * item.quantity,
+    0,
+  );
   const shipping = subtotal > 0 ? SHIPPING_FLAT_RATE : 0;
   const discount = 0;
   const tax = 0;
@@ -68,6 +91,11 @@ export const createOrderService = async (userId, { shippingAddress, paymentMetho
 
   // Step 4: Cart clear karo
   await clearUserCart(userId);
+
+  const user = await User.findById(userId).select("email");
+  if (user?.email) {
+    await sendOrderConfirmationEmail(order, user.email);
+  }
 
   return order;
 };
