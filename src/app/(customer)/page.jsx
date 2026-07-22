@@ -1,11 +1,6 @@
-import React from 'react'
+// app/(customer)/page.jsx
+import Hero from "@/components/customer/Hero";
 
-const page = () => {
-  return (
-    <div>
-      
-    </div>
-  )
+export default function HomePage() {
+  return <Hero />;
 }
-
-export default page
