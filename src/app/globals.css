@@ -12,3 +12,13 @@
   --font-sans: "Inter", sans-serif;
   --font-outfit: "Outfit", sans-serif;
 }
+
+/* Hide Horizontal Scrollbar */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}

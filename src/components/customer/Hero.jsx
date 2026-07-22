@@ -18,13 +18,13 @@ export default function Hero() {
 
       <div className="h-1.5 bg-[#d9d0ca] mx-2 md:mx-5" />
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 px-5 md:px-8 py-8 text-ink">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 px-5 md:px-8 py-4 text-[#d9d0ca]">
         <div>
           <span className="text-xs tracking-[0.15em] uppercase text-taupe">Velora</span>
         </div>
         <div>
           <span className="text-xs tracking-[0.15em] uppercase text-taupe">Why</span>
-          <p className="mt-3 text-sm leading-relaxed max-w-xs text-[#d9d0ca]">
+          <p className="mt-1 text-sm leading-relaxed max-w-sm text-[#d9d0ca]">
             Created by the ++hellohello team, this store and signature collection celebrates our collective creativity and passion for apparel. Carefully designed.
           </p>
         </div>

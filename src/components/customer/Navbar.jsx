@@ -21,7 +21,7 @@ export default function Navbar({ cartCount = 0 }) {
   return (
     <>
       <header className="sticky top-8 z-40 ">
-        <nav className="flex items-center justify-between px-5 md:px-8 h-16">
+        <nav className="flex items-center justify-between px-5 md:px-8 h-5">
           {/* Left — hamburger */}
           <div className="">
           <button
