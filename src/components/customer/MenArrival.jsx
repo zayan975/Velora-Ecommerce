@@ -1,66 +1,36 @@
 "use client";
 
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
-const DUMMY_PRODUCTS = [
-  {
-    _id: "1",
-    name: "Off by Design",
-    slug: "off-by-design",
-    price: 36.5,
-    stock: 12,
-    images: ["/assets/images/Men1.1.webp"],
-  },
-  {
-    _id: "2",
-    name: "Kerned Confidence",
-    slug: "kerned-confidence",
-    price: 25.0,
-    stock: 8,
-    images: ["/assets/images/Men5.webp"],
-  },
-  {
-    _id: "3",
-    name: "Specimen No. HH01",
-    slug: "specimen-hh01",
-    price: 30.0,
-    stock: 0,
-    images: ["/assets/images/Men2-2.webp"],
-  },
-  {
-    _id: "4",
-    name: "Grid System Go",
-    slug: "grid-system-go",
-    price: 30.0,
-    stock: 5,
-    images: ["/assets/images/Men4.webp"],
-  },
-  {
-    _id: "5",
-    name: "Classic Essentials",
-    slug: "classic-essentials",
-    price: 42.0,
-    stock: 15,
-    images: ["/assets/images/Men1.1.webp"],
-  },
-  {
-    _id: "6",
-    name: "Urban Layers",
-    slug: "urban-layers",
-    price: 39.0,
-    stock: 7,
-    images: ["/assets/images/Men5.webp"],
-  },
-];
-
 export default function ProductGrid({ limit = 8 }) {
-  const products = DUMMY_PRODUCTS.slice(0, limit);
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const sliderRef = useRef(null);
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const res = await fetch("/api/products?category=men");
+
+        const data = await res.json();
+
+        if (data.success) {
+          setProducts(data.data);
+        }
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProducts();
+  }, []);
 
   const scrollLeft = () => {
     sliderRef.current?.scrollBy({
@@ -75,6 +45,14 @@ export default function ProductGrid({ limit = 8 }) {
       behavior: "smooth",
     });
   };
+
+  if (loading) {
+    return (
+      <div className="py-20 text-center text-white">
+        Loading Products...
+      </div>
+    );
+  }
 
   return (
     <section className="py-16">
@@ -111,9 +89,9 @@ export default function ProductGrid({ limit = 8 }) {
       {/* Slider */}
       <div
         ref={sliderRef}
-        className="flex gap-5 overflow-hidden scroll-smooth scrollbar-hide px-5"
+        className="flex gap-5 overflow-x-auto scroll-smooth scrollbar-hide px-5"
       >
-        {products.map((product, i) => (
+        {products.slice(0, limit).map((product, i) => (
           <div
             key={product._id}
             className="min-w-[220px] md:min-w-[300px] flex-shrink-0"
@@ -127,7 +105,8 @@ export default function ProductGrid({ limit = 8 }) {
 }
 
 function ProductCard({ product, index }) {
-  const image = product.images?.[0] || "/assets/images/Men1.1.webp";
+  const image =
+    product.images?.[0] || "/assets/images/placeholder.webp";
 
   return (
     <motion.div

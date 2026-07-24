@@ -1,44 +1,93 @@
 "use client";
 
-import { useState } from "react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { Minus, Plus } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useParams } from "next/navigation";
 
-// TEMP dummy data — API integration sabse last mein hoga
-const PRODUCT = {
-  name: "Off by Design",
-  price: 36.5,
-  description:
-    "A relaxed-fit essential cut from heavyweight cotton jersey. Finished with a subtle back placement print and a dropped shoulder seam for an easy, oversized silhouette.",
-  stock: 12,
-  sizes: ["XS", "S", "M", "L", "XL"],
-  images: [
-    "/assets/images/Men1.1.webp",
-    "/assets/images/Men2-2.webp",
-    "/assets/images/Men3.webp",
-    "/assets/images/Men4.webp",
-  ],
-};
+
+
+
 
 export default function ProductDetail() {
+  const { slug } = useParams();
+const [product, setproduct] = useState(null);
+const [loading, setLoading] = useState(true);
   const [activeImage, setActiveImage] = useState(0);
   const [selectedSize, setSelectedSize] = useState(null);
   const [quantity, setQuantity] = useState(1);
   const [sizeError, setSizeError] = useState(false);
 
-  const decreaseQty = () => setQuantity((q) => Math.max(1, q - 1));
-  const increaseQty = () => setQuantity((q) => Math.min(PRODUCT.stock, q + 1));
+  const SIZES = ["XS", "S", "M", "L", "XL"];
 
-  const handleAddToCart = () => {
-    if (!selectedSize) {
-      setSizeError(true);
-      return;
+useEffect(() => {
+  const fetchproduct = async () => {
+    try {
+      const res = await fetch(`/api/products/slug/${slug}`);
+      const data = await res.json();
+
+      if (data.success) {
+        setproduct(data.data);
+      }
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setLoading(false);
     }
-    setSizeError(false);
-    // API integration baad mein: POST /api/cart { productId, quantity, size }
-    console.log("Add to cart:", { size: selectedSize, quantity });
   };
+
+  if (slug) {
+    fetchproduct();
+  }
+}, [slug]);
+if (loading) {
+  return (
+    <div className="py-32 text-center text-white">
+      Loading...
+    </div>
+  );
+}
+
+if (!product) {
+  return (
+    <div className="py-32 text-center text-white">
+      product not found
+    </div>
+  );
+}
+
+const handleAddToCart = async () => {
+  try {
+    const res = await fetch("/api/cart", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        productId: product._id,
+        quantity,
+      }),
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+      alert("Added to cart");
+    } else {
+      alert(data.message);
+    }
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+
+
+  const decreaseQty = () => setQuantity((q) => Math.max(1, q - 1));
+  const increaseQty = () => setQuantity((q) => Math.min(product.stock, q + 1));
+
+
 
   return (
     <section className="max-w-6xl mx-auto px-5 md:px-8 py-8 md:py-14">
@@ -56,8 +105,8 @@ export default function ProductDetail() {
                 className="absolute inset-0"
               >
                 <Image
-                  src={PRODUCT.images[activeImage]}
-                  alt={PRODUCT.name}
+                  src={product.images[activeImage]}
+                  alt={product.name}
                   fill
                   className="object-cover"
                   sizes="(max-width: 768px) 100vw, 50vw"
@@ -68,7 +117,7 @@ export default function ProductDetail() {
           </div>
 
           <div className="flex gap-3 mt-4 overflow-x-auto pb-1">
-            {PRODUCT.images.map((img, i) => (
+            {product.images.map((img, i) => (
               <button
                 key={img}
                 onClick={() => setActiveImage(i)}
@@ -85,12 +134,12 @@ export default function ProductDetail() {
         {/* Right — product info */}
         <div className="flex flex-col">
           <h1 className="font-outfit text-3xl md:text-4xl text-[#d9d0ca]">
-            {PRODUCT.name}
+            {product.name}
           </h1>
-          <span className="text-lg text-[#d9d0ca] mt-2">${PRODUCT.price.toFixed(2)}</span>
+          <span className="text-lg text-[#d9d0ca] mt-2">${product.price.toFixed(2)}</span>
 
           <p className="text-sm text-[#d9d0ca] leading-relaxed mt-5 max-w-md">
-            {PRODUCT.description}
+            {product.description}
           </p>
 
           <div className="h-px bg-[#d9d0ca] my-7" />
@@ -104,7 +153,7 @@ export default function ProductDetail() {
               )}
             </div>
             <div className="flex flex-wrap gap-2">
-              {PRODUCT.sizes.map((size) => (
+              {SIZES.map((size) => (
                 <button
                   key={size}
                   onClick={() => {
@@ -139,16 +188,16 @@ export default function ProductDetail() {
               <span className="w-10 text-center text-sm text-[#d9d0ca]">{quantity}</span>
               <button
                 onClick={increaseQty}
-                disabled={quantity >= PRODUCT.stock}
+                disabled={quantity >= product.stock}
                 className="w-10 h-10 flex items-center justify-center text-[#d9d0ca] disabled:opacity-30 hover:bg-ink/5 transition-colors"
               >
                 <Plus size={14} />
               </button>
             </div>
 
-            {PRODUCT.stock <= 5 && (
+            {product.stock <= 5 && (
               <p className="text-xs text-[#d9d0ca] mt-2">
-                Only {PRODUCT.stock} left in stock
+                Only {product.stock} left in stock
               </p>
             )}
           </div>

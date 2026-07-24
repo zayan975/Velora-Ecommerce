@@ -3,73 +3,76 @@
 import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
-
-// TEMP dummy data — API integration sabse last mein hoga, tab ye array hata ke
-// fetch se replace kar denge (jaisa pehle wale version mein tha)
-const DUMMY_PRODUCTS = [
-  {
-    _id: "1",
-    name: "Off by Design",
-    slug: "off-by-design",
-    price: 36.5,
-    stock: 12,
-    images: ["/assets/images/Men1.1.webp"],
-  },
-  {
-    _id: "2",
-    name: "Kerned Confidence",
-    slug: "kerned-confidence",
-    price: 25.0,
-    stock: 8,
-    images: ["/assets/images/Men5.webp"],
-  },
-  {
-    _id: "3",
-    name: "Specimen No. HH01",
-    slug: "specimen-hh01",
-    price: 30.0,
-    stock: 0,
-    images: ["/assets/images/Women3.webp"],
-  },
-  {
-    _id: "4",
-    name: "Grid System Go",
-    slug: "grid-system-go",
-    price: 30.0,
-    stock: 5,
-    images: ["/assets/images/Women4.webp"],
-  },
-];
+import { useEffect, useState } from "react";
 
 export default function ProductGrid({ limit = 8 }) {
-  const products = DUMMY_PRODUCTS.slice(0, limit);
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const res = await fetch("/api/products?featured=true");
+        const data = await res.json();
+
+        if (data.success) {
+          setProducts(data.data);
+        }
+      } catch (error) {
+        console.log(error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProducts();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="text-center py-20 text-white">
+        Loading Products...
+      </div>
+    );
+  }
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-5 p-5 ">
-      {products.map((product, i) => (
-        <ProductCard key={product._id} product={product} index={i} />
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-5 p-5">
+      {products.slice(0, limit).map((product, i) => (
+        <ProductCard
+          key={product._id}
+          product={product}
+          index={i}
+        />
       ))}
     </div>
   );
 }
 
 function ProductCard({ product, index }) {
-  const image = product.images?.[0] || "/assets/images/Men1.1.webp";
+  const image = product.images?.[0];
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 14 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4, delay: index * 0.04, ease: "easeOut" }}
+      transition={{
+        duration: 0.4,
+        delay: index * 0.04,
+        ease: "easeOut",
+      }}
     >
-      <Link href={`/products/${product.slug}`} className="group block ">
-        <div className="relative aspect-[3/4] overflow-hidden ">
+      <Link
+        href={`/products/${product.slug}`}
+        className="group block"
+      >
+        <div className="relative aspect-[3/4] overflow-hidden">
           <Image
             src={image}
             alt={product.name}
             fill
             className="object-cover transition-transform duration-500 group-hover:scale-[1.04]"
-            sizes="(max-width: 768px) 50vw, 25vw"
+            sizes="(max-width:768px) 50vw,25vw"
           />
 
           {product.stock === 0 && (
@@ -83,8 +86,9 @@ function ProductCard({ product, index }) {
           <span className="text-[#d9d0ca] font-sans text-sm md:text-base font-medium truncate">
             {product.name}
           </span>
+
           <span className="text-[#d9d0ca] font-sans text-sm md:text-base whitespace-nowrap">
-            ${product.price?.toFixed(2)}
+            ${product.price.toFixed(2)}
           </span>
         </div>
       </Link>
