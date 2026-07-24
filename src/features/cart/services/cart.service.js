@@ -7,7 +7,7 @@ export const getCartService = async (userId) => {
   await connectDB();
   const cart = await Cart.findOne({ user: userId }).populate(
     "items.product",
-    "name images price stock"
+    "name slug images price stock"
   );
   return cart || { user: userId, items: [] };
 };
